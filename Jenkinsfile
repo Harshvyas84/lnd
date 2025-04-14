@@ -3,13 +3,6 @@ pipeline {
     // Run on any available agent (the built-in Jenkins node in this case)
     agent any
 
-    // Define environment variables, including Go path setup
-    environment {
-        // Note: Jenkins plugins might handle Go paths, but setting explicitly can help
-        // Adjust GOPATH if your agent setup differs
-        // GOROOT will be set by the Go tool plugin if used, or manually if Go is pre-installed
-    }
-
     // Define build stages
     stages {
         stage('Checkout') {
