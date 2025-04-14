@@ -1,0 +1,41 @@
+name: Basic LND CI Check # Name of the workflow displayed on GitHub
+
+# Controls when the workflow will run
+on:
+  push: # Runs on pushes to any branch
+    branches: [ master, main ] # Limit to master/main branch pushes
+  pull_request: # Runs on pull requests targeting master/main
+    branches: [ master, main ]
+  workflow_dispatch: # Allows manual triggering from GitHub UI
+
+jobs:
+  build-and-test: # Define a job named 'build-and-test'
+    runs-on: ubuntu-latest # Specify the type of machine to run on (GitHub-hosted Ubuntu)
+
+    steps: # Sequence of tasks to perform
+    # Step 1: Check out the repository code onto the runner
+    - name: Checkout code
+      uses: actions/checkout@v4 # Use the official checkout action (v4)
+
+    # Step 2: Set up the Go programming environment
+    - name: Set up Go
+      uses: actions/setup-go@v5 # Use the official Go setup action (v5)
+      with:
+        # Check lnd's go.mod for the exact version if needed, use a recent one here
+        go-version: '1.21' 
+        # Optional: Cache Go modules to speed up subsequent runs
+        cache: true 
+
+    # Step 3: Display Go version (useful for debugging)
+    - name: Display Go version
+      run: go version
+
+    # Step 4: Run basic unit tests (avoids needing bitcoind setup for make check)
+    # We use 'go test' which runs unit tests quickly.
+    # 'make check' requires a complex bitcoind setup in CI.
+    - name: Run Go unit tests
+      run: go test ./...
+
+    # Example Alternative Step: Run a fuzz test for a short duration
+    # - name: Run Fuzz Target Briefly
+    #   run: go test ./tlv -fuzz=FuzzStream -fuzztime=20s
