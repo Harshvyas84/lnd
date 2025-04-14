@@ -1,40 +1,44 @@
 // Declarative Pipeline syntax
 pipeline {
-    // Run on any available agent (the built-in Jenkins node in this case)
-    agent any
+    // **CHANGE 1: Define the agent as a Docker container**
+    // This tells Jenkins to run the steps inside a container
+    // based on the official golang image, version 1.21
+    agent {
+        docker {
+            image 'golang:1.21' 
+            // Optional: Mount the workspace inside the container
+            // args '-v $WORKSPACE:$WORKSPACE -w $WORKSPACE' 
+        }
+    }
 
     // Define build stages
     stages {
         stage('Checkout') {
+            // **CHANGE 2: Checkout happens automatically with docker agent**
+            // So we remove the explicit 'checkout scm' step here
+            // But keep the deleteDir for cleanliness
             steps {
-                // Check out code from version control (defaults to the repo linked to the pipeline)
-                script {
-                    // Clean workspace before checkout
-                    deleteDir() 
-                }
-                checkout scm 
-                script {
-                    // Print current branch (for debugging)
-                    echo "Checked out branch: ${env.BRANCH_NAME}" 
-                }
+               script {
+                   echo "Workspace: ${env.WORKSPACE}"
+                   // Clean workspace before checkout (happens implicitly now)
+                   // deleteDir() // Not strictly needed now, checkout is clean
+               }
             }
         }
 
         stage('Setup Go') {
             steps {
-                // Using a Tool installer is the Jenkins way, but requires setup.
-                // For simplicity here, we assume Go is available on the agent.
-                // In a real setup, use Tools -> Global Tool Configuration -> Go
-                // Or use a Docker agent with Go pre-installed.
-                // We'll just check the version assuming it exists.
+                // Go is now pre-installed in the golang:1.21 image
+                // We just verify the version
                 sh 'go version' 
+                sh 'go env GOROOT GOPATH' // See where Go is setup
             }
         }
 
         stage('Run Go Tests') {
             steps {
                 // Run basic Go unit tests
-                // Similar to GitHub Actions, 'make check' would need bitcoind
+                // This should now FIND the 'go' command
                 sh 'go test ./...' 
             }
         }
